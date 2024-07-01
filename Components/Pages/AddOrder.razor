@@ -1,0 +1,60 @@
+﻿@page "/addorder"
+@using customeblz.Services
+@using customeblz.Models
+@rendermode InteractiveServer
+@inject IOrderService OrderService
+@inject NavigationManager Navigation
+@inject ILogger<AddOrder> Logger
+
+<h3>Add Order</h3>
+
+<EditForm Model="newOrder" OnValidSubmit="HandleValidSubmit" FormName="AddOrderForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+
+    <div class="mb-3">
+        <label for="customerId" class="form-label">Customer ID</label>
+        <InputText id="customerId" class="form-control" @bind-Value="newOrder.CustomerId" />
+    </div>
+    <div class="mb-3">
+        <label for="orderDate" class="form-label">Order Date</label>
+        <InputDate id="orderDate" class="form-control" @bind-Value="newOrder.orderdate" />
+    </div>
+    <div class="mb-3">
+        <label for="totalAmount" class="form-label">status</label>
+        <InputNumber id="totalAmount" class="form-control" @bind-Value="newOrder.status" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+    
+</EditForm>
+
+
+
+@code {
+    private Order newOrdr = new Order();
+    private bool isAdded = false;
+    private int addedOrderId;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await OrderService.AddOrder(newOrder);
+            // Assuming the service returns the added customer with ID
+            var addedOrder = await OrderService.GetOrder(newOrder.OrderId);
+            addedOrderId = addedOrder.OrderId;
+            isAdded = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error adding customer");
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/orders");
+    }
+}

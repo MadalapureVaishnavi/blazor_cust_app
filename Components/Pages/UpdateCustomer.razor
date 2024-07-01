@@ -1,0 +1,84 @@
+﻿@page "/updatecustomer/{id:int}"
+@using customeblz.Services
+@using customeblz.Models
+@rendermode InteractiveServer
+@inject ICustomerService CustomerService
+@inject NavigationManager Navigation
+@inject ILogger<UpdateCustomer> Logger
+
+<h3>Update Customer</h3>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (customer == null)
+{
+    <p>Customer not found.</p>
+}
+else
+{
+    <EditForm Model="customer" OnValidSubmit="HandleValidSubmit" FormName="updateCustomerForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <InputText id="name" class="form-control" @bind-Value="customer.Name" />
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="customer.Email" />
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">Phone</label>
+            <InputText id="phone" class="form-control" @bind-Value="customer.Phone" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Customer</button>
+        <button type="button" class="btn btn-secondary" @onclick="NavigateBack">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    private Customer customer;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger.LogInformation("Loading customer with ID {CustomerId}", id);
+            customer = await CustomerService.GetCustomer(id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading customer with ID {CustomerId}", id);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            Logger.LogInformation("Updating customer with ID {CustomerId}", id);
+            await CustomerService.UpdateCustomer(customer);
+            Navigation.NavigateTo("/customers");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating customer with ID {CustomerId}", id);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/AddCustomer");
+    }
+}

@@ -1,0 +1,66 @@
+﻿@page "/addcustomer"
+@using customeblz.Services
+@using customeblz.Models
+@rendermode InteractiveServer
+@inject ICustomerService CustomerService
+@inject NavigationManager Navigation
+@inject ILogger<AddCustomer> Logger
+
+<h3>Add Customer</h3>
+
+<EditForm Model="newCustomer" OnValidSubmit="HandleValidSubmit" FormName="AddCustomerForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <InputText id="name" class="form-control" @bind-Value="newCustomer.Name" />
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="newCustomer.Email" />
+    </div>
+    <div class="mb-3">
+        <label for="phone" class="form-label">Phone</label>
+        <InputText id="phone" class="form-control" @bind-Value="newCustomer.Phone" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Customer</button>
+    <a class="btn btn-info" href="/UpdateCustomer/@addedCustomerId">Update Customer</a>
+    <a class="btn btn-danger" href="/DeleteCustomer/@addedCustomerId">Delete Customer</a>
+    <a class="btn btn-secondary" href="/customer/@addedCustomerId">View Customer Details</a>
+</EditForm>
+
+
+
+@code {
+    private Customer newCustomer = new Customer();
+    private bool isAdded = false;
+    private int addedCustomerId;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await CustomerService.AddCustomer(newCustomer);
+            // Assuming the service returns the added customer with ID
+            var addedCustomer = await CustomerService.GetCustomer(newCustomer.CustomerId);
+            addedCustomerId = addedCustomer.CustomerId;
+            isAdded = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error adding customer");
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/customers");
+    }
+
+    private void NavigateToDelete()
+    {
+        Navigation.NavigateTo($"/deletecustomer/{addedCustomerId}");
+    }
+}

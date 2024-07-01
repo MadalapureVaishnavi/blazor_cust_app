@@ -1,0 +1,61 @@
+﻿@page "/customer/{id:int}"
+@using customeblz.Services
+@using customeblz.Models
+@inject ICustomerService CustomerService
+@inject NavigationManager Navigation
+@inject ILogger<GetCustomer> Logger
+
+<h3>Customer Details</h3>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (customer == null)
+{
+    <p>Customer not found.</p>
+}
+else
+{
+    <div>
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@customer.Name</dd>
+
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@customer.Email</dd>
+
+            <dt class="col-sm-2">Phone</dt>
+            <dd class="col-sm-10">@customer.Phone</dd>
+        </dl>
+        <button class="btn btn-primary" @onclick="NavigateBack">Back</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    private Customer customer;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            customer = await CustomerService.GetCustomer(id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading customer with ID {CustomerId}", id);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/customers");
+    }
+}

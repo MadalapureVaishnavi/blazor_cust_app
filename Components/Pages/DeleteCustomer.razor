@@ -1,0 +1,77 @@
+﻿@page "/deletecustomer/{id:int}"
+@using customeblz.Services
+@using customeblz.Models
+@rendermode InteractiveServer
+@inject ICustomerService CustomerService
+@inject NavigationManager Navigation
+@inject ILogger<DeleteCustomer> Logger
+
+<h3>Delete Customer</h3>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (customer == null)
+{
+    <p>Customer not found.</p>
+}
+else
+{
+    <div>
+        <p>Are you sure you want to delete the following customer?</p>
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@customer.Name</dd>
+
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@customer.Email</dd>
+
+            <dt class="col-sm-2">Phone</dt>
+            <dd class="col-sm-10">@customer.Phone</dd>
+        </dl>
+        <button class="btn btn-danger" @onclick="DeleteCustomerAsync">Delete</button>
+        <button class="btn btn-secondary" @onclick="NavigateBack">Cancel</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    private Customer customer;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            customer = await CustomerService.GetCustomer(id);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading customer with ID {CustomerId}", id);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task DeleteCustomerAsync()
+    {
+        try
+        {
+            await CustomerService.DeleteCustomer(id);
+            Navigation.NavigateTo("/customers");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error deleting customer with ID {CustomerId}", id);
+        }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/AddCustomer");
+    }
+}
